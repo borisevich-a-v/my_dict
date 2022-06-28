@@ -4,6 +4,10 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, Field, validator
 
 
+class HumanReadableException(Exception):
+    ...
+
+
 class User(BaseModel):
     """
     https://core.telegram.org/bots/api#user
