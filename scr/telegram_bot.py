@@ -1,13 +1,12 @@
-import time
 import urllib
 from string import ascii_lowercase
 from typing import List, Optional
 
 import requests  # type: ignore
-
 from config import settings
-from db.google_sheets import add_word_to_db
-from models import HumanReadableException, Message, Update, Updates
+from models import Message, Update, Updates
+
+from scr.errors import TelegramBotError
 
 URL = f"https://api.telegram.org/bot{settings.token}/"
 
@@ -42,13 +41,13 @@ def get_new_updates(updates: Optional[List[Update]]) -> List[Update]:
 
 def get_word_from_message(message: Message) -> str:
     if message.text is None:
-        raise HumanReadableException("Message does not contain text")
+        raise TelegramBotError("Message does not contain text")
     word = message.text.strip().lower()
     if len(word.split()) != 1:
-        raise HumanReadableException("Message doesn't contain single word")
+        raise TelegramBotError("Message doesn't contain single word")
     for char in word:
         if char.lower() not in ascii_lowercase:
-            raise HumanReadableException("Message contains non eng letter")
+            raise TelegramBotError("Message contains non eng letter")
     return word
 
 
@@ -56,27 +55,3 @@ def reply_message(message: Message, text: str) -> None:
     tot = urllib.parse.quote_plus(text)  # type: ignore
     url = f"{URL}sendMessage?chat_id={message.chat.id}&text={tot}&reply_to_message_id={message.message_id}"
     send_request(url)
-
-
-def main() -> None:
-    updates = None
-    while True:
-        updates = get_new_updates(updates)
-        if not updates:
-            time.sleep(0.1)
-            continue
-
-        for update in updates:
-            if update.message is None:
-                continue
-            try:
-                word = get_word_from_message(update.message)
-            except HumanReadableException as exp:
-                reply_message(update.message, str(exp))
-                continue
-            add_word_to_db(word)
-            reply_message(update.message, word)
-
-
-if __name__ == "__main__":
-    main()
