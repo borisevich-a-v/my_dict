@@ -9,3 +9,7 @@ class StorageError(CustomException):
 
 class TelegramBotError(CustomException):
     ...
+
+
+class BusinessLogicError(CustomException):
+    ...

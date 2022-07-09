@@ -1,57 +1,48 @@
+import time
+import traceback
 import urllib
-from string import ascii_lowercase
-from typing import List, Optional
+from typing import Generator, Optional
 
-import requests  # type: ignore
-from config import settings
 from models import Message, Update, Updates
 
-from scr.errors import TelegramBotError
-
-URL = f"https://api.telegram.org/bot{settings.token}/"
-
-
-def get_updates(offset: int = None) -> List[Update]:
-    url = URL + "getUpdates?timeout=100"
-    if offset:
-        url += f"&offset={offset}"
-    response = send_request(url)
-    content = response.content.decode("utf8")
-    updates = Updates.parse_raw(content)
-    return updates.result
+from .errors import TelegramBotError
+from .utils import send_request
 
 
-# TODO: improve it
-def send_request(url: str) -> requests.Response:
-    print(f"Sending request {url}")
-    return requests.get(url)
+class TelegramBot:
+    def __init__(self, token):
+        self.url = f"https://api.telegram.org/bot{token}/"
+        self.last_update_id: int = -1
 
+    def listen_updates(self) -> Generator[Update, None, None]:
+        while True:
+            try:
+                updates = self.get_updates(self.last_update_id + 1)
+                if not updates.ok:
+                    raise TelegramBotError("The updates results is not `ok`")
+                for update in sorted(updates.result, key=lambda x: int(x.update_id)):
+                    yield update
+                    self.last_update_id = update.update_id
+                time.sleep(0.1)
+            except Exception as exp:
+                print(traceback.format_exc())
+                raise TelegramBotError("Can't read") from exp
 
-def get_next_update_id(updates: Optional[List[Update]]) -> Optional[int]:
-    if not updates:
-        return None
-    last_update = max(updates, key=lambda x: int(x.update_id))
-    return int(last_update.update_id) + 1
+    def get_updates(self, offset: int = 0) -> Updates:
+        url = self.url + "getUpdates?timeout=100"
+        if offset:
+            url += f"&offset={offset}"
+        response = send_request(url)
+        content = response.content.decode("utf8")
+        return Updates.parse_raw(content)
 
+    def reply_message(self, message: Message, text: str) -> None:
+        tot = urllib.parse.quote_plus(text)  # type: ignore
+        url = f"{self.url}sendMessage?chat_id={message.chat.id}&text={tot}&reply_to_message_id={message.message_id}"
+        send_request(url)
 
-def get_new_updates(updates: Optional[List[Update]]) -> List[Update]:
-    next_update_id = get_next_update_id(updates)
-    return get_updates(next_update_id)
-
-
-def get_word_from_message(message: Message) -> str:
-    if message.text is None:
-        raise TelegramBotError("Message does not contain text")
-    word = message.text.strip().lower()
-    if len(word.split()) != 1:
-        raise TelegramBotError("Message doesn't contain single word")
-    for char in word:
-        if char.lower() not in ascii_lowercase:
-            raise TelegramBotError("Message contains non eng letter")
-    return word
-
-
-def reply_message(message: Message, text: str) -> None:
-    tot = urllib.parse.quote_plus(text)  # type: ignore
-    url = f"{URL}sendMessage?chat_id={message.chat.id}&text={tot}&reply_to_message_id={message.message_id}"
-    send_request(url)
+    def get_text_from_update(self, update: Update) -> Optional[str]:
+        if not update.message or not update.message.text:
+            print(f"Update#{update.update_id} does not contain text")
+            return None
+        return update.message.text
