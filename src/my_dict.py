@@ -19,4 +19,4 @@ def process_word(text, storage):
     except BusinessLogicError as exp:
         return str(exp)
     storage.save_word(word)
-    return f"{word} saved"
+    return f"`{word}` saved"

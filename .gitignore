@@ -22,3 +22,5 @@ dmypy.json
 
 # PyCharm
 .idea/
+
+/service_account.json

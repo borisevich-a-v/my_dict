@@ -3,8 +3,9 @@ import traceback
 import urllib
 from typing import Generator, Optional
 
-from .models import Message, Update, Updates
+from .config import settings
 from .errors import TelegramBotError
+from .models import Message, Update, Updates
 from .utils import send_request
 
 
@@ -13,6 +14,17 @@ class TelegramBot:
         self.url = f"https://api.telegram.org/bot{token}/"
         self.last_update_id: int = -1
 
+    def check_user_name(self, update: Update) -> bool:
+        if not update.message or not update.message.from_user:
+            print(f"bad msg: {update}")
+            return False
+        if str(update.message.from_user.id) in settings.allowed_users:
+            return True
+        for _ in range(30):
+            user_name = update.message.from_user.first_name
+            self.reply_message(update.message, f"{user_name} shall not pass!")
+        return False
+
     def listen_updates(self) -> Generator[Update, None, None]:
         while True:
             try:
@@ -20,8 +32,10 @@ class TelegramBot:
                 if not updates.ok:
                     raise TelegramBotError("The updates results is not `ok`")
                 for update in sorted(updates.result, key=lambda x: int(x.update_id)):
-                    yield update
                     self.last_update_id = update.update_id
+                    if not self.check_user_name(update):
+                        continue
+                    yield update
                 time.sleep(0.1)
             except Exception as exp:
                 print(traceback.format_exc())
