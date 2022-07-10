@@ -1,14 +1,6 @@
 from string import ascii_lowercase
 
-import requests  # type: ignore
-
-from scr.errors import BusinessLogicError
-
-
-# TODO: improve it
-def send_request(url: str) -> requests.Response:
-    print(f"Sending request {url}")
-    return requests.get(url)
+from .errors import BusinessLogicError
 
 
 def check_and_normalize_word(word: str) -> str:
@@ -19,3 +11,12 @@ def check_and_normalize_word(word: str) -> str:
         if char.lower() not in ascii_lowercase:
             raise BusinessLogicError("Message contains non eng letter")
     return word
+
+
+def process_word(text, storage):
+    try:
+        word = check_and_normalize_word(text)
+    except BusinessLogicError as exp:
+        return str(exp)
+    storage.save_word(word)
+    return f"{word} saved"

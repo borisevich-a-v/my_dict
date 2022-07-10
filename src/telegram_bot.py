@@ -3,8 +3,7 @@ import traceback
 import urllib
 from typing import Generator, Optional
 
-from models import Message, Update, Updates
-
+from .models import Message, Update, Updates
 from .errors import TelegramBotError
 from .utils import send_request
 

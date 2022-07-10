@@ -3,8 +3,8 @@ import logging
 
 import gspread
 
-from scr.config import settings
-from scr.errors import StorageError
+from .config import settings
+from .errors import StorageError
 
 logger = logging.getLogger(__file__)
 
