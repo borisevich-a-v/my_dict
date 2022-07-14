@@ -24,3 +24,4 @@ dmypy.json
 .idea/
 
 /my_dict/service_account.json
+/deploy.sh
