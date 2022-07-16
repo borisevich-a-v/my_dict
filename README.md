@@ -8,3 +8,7 @@ Implement adding words to google sheets (most cheeper and reliable storage)
 
 ### 2nd step
 Refactoring, add authentification, deploy, add simple feature
+`docker`, `ubuntu20.04`
+
+### 3rd step
+Add export
