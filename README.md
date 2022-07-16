@@ -1,14 +1,9 @@
 # my_dict
-My english dictionary
+It's a dictionary to store english words. There are only two feature: add word into dictionary and export a list of words since the last export date.
 
+UI: telegram
+Storage: google sheets
 
-### First step
-Implement adding words to google sheets (most cheeper and reliable storage)
-`python3.10`, `requests`, `Telegram API`, `Google Sheets API`
+Python3.10, pydantic, docker, mypy
 
-### 2nd step
-Refactoring, add authentification, deploy, add simple feature
-`docker`, `ubuntu20.04`
-
-### 3rd step
-Add export
+Minimul version is ready. It needs refactoring and speeding up
