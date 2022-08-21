@@ -1,4 +1,4 @@
-# If you are employer please do not review this code, let's check [this one](https://github.com/borisevich-a-v/lang_channel). It's also bad, but I spend more time for it 
+# If you are an employer please do not review this code, let's check [this one](https://github.com/borisevich-a-v/lang_channel). It's also bad, but I spent more time on it 
 
 # my_dict
 
